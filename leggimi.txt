@@ -1,0 +1,5 @@
+I file vanno eseguiti nell'ordine in cui sono numerati. Ci sono problemi evidenti nella costruzione del controllore a pid 
+disaccoppiati come visibile anche nello script che lo costruisce. Per eseguire lo script della RAS in simulink è necessario 
+nominare correttamente i segnali in simulink e attivarne il logging (non è ancora stato testato). Oltre a risolvere questi piccoli 
+bug sarebbero da impostare delle specifiche buone per i controllori e vedere se si riescono a ottenere dei controllori che seguono 
+le specifiche adeguate.
