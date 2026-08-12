@@ -1,0 +1,219 @@
+%% ========================================================================
+% MONTE_CARLO_ROBUSTNESS
+%
+% Punto 5 della traccia.
+% 10 plant parametrici incerti:
+%   - stabilita'
+%   - settling time
+%   - bandwidth
+%   - reiezione disturbi aerodinamici
+% ========================================================================
+
+close all;
+clc;
+
+load('HINF_setup.mat');
+load('HINF_controllers.mat');
+load('MU_controller.mat');
+
+assert(exist('Gd_uncertain','var') == 1, ...
+    'Gd_uncertain deve essere disponibile dal modello lineare esteso.');
+
+I2 = eye(2);
+
+controllers = {
+    K_mix
+    K_hinfsyn
+    K_pidcomp
+    K_mu
+};
+
+controllerNames = {
+    'mixsyn'
+    'hinfsyn'
+    'PID+comp'
+    'mu-synthesis'
+};
+
+Nc = numel(controllers);
+
+nSamples = 10;
+
+rng(20);
+
+%% Plant complessivo per campionare in maniera coerente
+% primi 2 ingressi  = comando
+% ultimi 2 ingressi = disturbi aerodinamici
+
+Gall_uncertain = [
+    G_uncertain, ...
+    Gd_uncertain
+];
+
+Gall_samples = ...
+    usample( ...
+        Gall_uncertain, ...
+        nSamples);
+
+t = 0:0.005:12;
+
+resultController = strings(Nc*nSamples,1);
+resultSample = zeros(Nc*nSamples,1);
+
+Stable = false(Nc*nSamples,1);
+
+PitchSettling = nan(Nc*nSamples,1);
+YawSettling   = nan(Nc*nSamples,1);
+
+PitchBW = nan(Nc*nSamples,1);
+YawBW   = nan(Nc*nSamples,1);
+
+PitchDistPeak = nan(Nc*nSamples,1);
+YawDistPeak   = nan(Nc*nSamples,1);
+
+row = 0;
+
+for ic = 1:Nc
+
+    K = controllers{ic};
+
+    for is = 1:nSamples
+
+        row = row + 1;
+
+        resultController(row) = ...
+            string(controllerNames{ic});
+
+        resultSample(row) = is;
+
+        Gsample = ...
+            Gall_samples(:,:,is);
+
+        Gu = ...
+            Gsample(:,1:2);
+
+        Gd = ...
+            Gsample(:,3:4);
+
+        L = Gu*K;
+
+        S = feedback(I2,L);
+        T = feedback(L,I2);
+
+        stableNow = ...
+            all(real(pole(T))<0);
+
+        Stable(row) = stableNow;
+
+        if ~stableNow
+            continue;
+        end
+
+        %% ---------------------------------------------------------------
+        % TRACKING PITCH
+        % ---------------------------------------------------------------
+
+        yPitch = ...
+            step( ...
+                T(:,1)*reference.alphaStep, ...
+                t);
+
+        yPitch = squeeze(yPitch);
+
+        infoPitch = ...
+            stepinfo( ...
+                yPitch(:,1), ...
+                t, ...
+                reference.alphaStep, ...
+                'SettlingTimeThreshold',0.02);
+
+        PitchSettling(row) = ...
+            infoPitch.SettlingTime;
+
+        %% ---------------------------------------------------------------
+        % TRACKING YAW
+        % ---------------------------------------------------------------
+
+        yYaw = ...
+            step( ...
+                T(:,2)*reference.betaStep, ...
+                t);
+
+        yYaw = squeeze(yYaw);
+
+        infoYaw = ...
+            stepinfo( ...
+                yYaw(:,2), ...
+                t, ...
+                reference.betaStep, ...
+                'SettlingTimeThreshold',0.02);
+
+        YawSettling(row) = ...
+            infoYaw.SettlingTime;
+
+        %% ---------------------------------------------------------------
+        % BANDWIDTH
+        % ---------------------------------------------------------------
+
+        PitchBW(row) = ...
+            bandwidth(T(1,1));
+
+        YawBW(row) = ...
+            bandwidth(T(2,2));
+
+        %% ---------------------------------------------------------------
+        % DISTURBI AERODINAMICI
+        % ---------------------------------------------------------------
+
+        Td = S*Gd;
+
+        yDalpha = ...
+            step( ...
+                Td(:,1)*aero.alpha.amplitude, ...
+                t);
+
+        yDalpha = squeeze(yDalpha);
+
+        PitchDistPeak(row) = ...
+            max(abs(yDalpha(:,1)));
+
+        yDbeta = ...
+            step( ...
+                Td(:,2)*aero.beta.amplitude, ...
+                t);
+
+        yDbeta = squeeze(yDbeta);
+
+        YawDistPeak(row) = ...
+            max(abs(yDbeta(:,2)));
+
+    end
+end
+
+MonteCarloResults = table( ...
+    resultController, ...
+    resultSample, ...
+    Stable, ...
+    PitchSettling, ...
+    YawSettling, ...
+    PitchBW, ...
+    YawBW, ...
+    PitchDistPeak, ...
+    YawDistPeak, ...
+    'VariableNames',{
+        'Controller'
+        'Sample'
+        'Stable'
+        'PitchSettling'
+        'YawSettling'
+        'PitchBandwidth'
+        'YawBandwidth'
+        'PitchDisturbancePeak'
+        'YawDisturbancePeak'
+    });
+
+disp(MonteCarloResults);
+
+writetable( ...
+    MonteCarloResults, ...
+    'MonteCarloRobustness.csv');
