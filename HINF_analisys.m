@@ -23,7 +23,7 @@ I2 = eye(2);
 
 wcuRS_all = cell(nControllers,1);
 wcuRP_all = cell(nControllers,1);
-robSensitivity_all = cell(nControllers,1);
+robSensitivity_all =    cell(nControllers,1);
 
 %% ========================================================================
 % 1. CONTROLLORI

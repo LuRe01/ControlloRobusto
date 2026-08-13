@@ -81,17 +81,50 @@ Pq_nominal.OutputName = {
 
 %% Plant incerto
 
+% Pq_uncertain = P_uncertain([1 3],:);
+% 
+% Pq_uncertain.InputName = {
+%     'delta_F1'
+%     'delta_F2'
+% };
+% 
+% Pq_uncertain.OutputName = {
+%     'delta_alpha'
+%     'delta_beta'
+% };
+
+%% Plant incerto
+
 Pq_uncertain = P_uncertain([1 3],:);
+
+% --- NUOVO BLOCCO PER RIDURRE LE INCERTEZZE A 2 ---
+parametersToNominal = {
+    'J_y'
+    'J_z'
+    'm'
+    'l'
+    'epsilon_y'
+    };
+
+for k = 1:numel(parametersToNominal)
+    parName = parametersToNominal{k};
+    if isfield(Pq_uncertain.Uncertainty,parName)
+        block = Pq_uncertain.Uncertainty.(parName);
+        Pq_uncertain = usubs(Pq_uncertain, parName, block.NominalValue);
+    end
+end
+% --------------------------------------------------
 
 Pq_uncertain.InputName = {
     'delta_F1'
     'delta_F2'
-};
+    };
 
 Pq_uncertain.OutputName = {
     'delta_alpha'
     'delta_beta'
-};
+    };
+
 
 %% ========================================================================
 % 3. ATTUATORI NOMINALI

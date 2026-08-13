@@ -78,7 +78,7 @@ act.deltaF2_max =  2.50;
 % ========================================================================
 
 sensor.seed = 12345;
-sensor.noiseEnable = 1; % mettere a 0 per la RAS
+sensor.noiseEnable = 0; % mettere a 0 per la RAS
 
 %% ========================================================================
 % VECTORNAV VN-100
@@ -154,6 +154,6 @@ ref.beta.time     = 2;
 %% ========================================================================
 % HINF controller selection
 % ========================================================================
-HINF_controller_id = 3;  % 1: mixsyn 2: hinfsyn 3: hinfstruct (PID)
+HINF_controller_id = 4;  % 1: mixsyn 2: hinfsyn 3: hinfstruct (PID)
 
 LQG_controller_id = 2;  % 1 = LQG, 2 = LQGI

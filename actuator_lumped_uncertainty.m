@@ -131,10 +131,21 @@ Gact_lumped = blkdiag( ...
 
 Pmech_reduced = P_uncertain;
 
+% Sostituito per ridurre incertezze
+% parametersToNominal = {
+%     'J_y'
+%     'J_z'
+% };
+
 parametersToNominal = {
     'J_y'
     'J_z'
-};
+    'm'
+    'l'
+    'epsilon_y'
+    };
+
+
 
 for k = 1:numel(parametersToNominal)
 
