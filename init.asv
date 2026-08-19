@@ -154,6 +154,6 @@ ref.beta.time     = 2;
 %% ========================================================================
 % HINF controller selection
 % ========================================================================
-HINF_controller_id = 1;  % 1: mixsyn 2: hinfsyn 3: hinfstruct (PID)
+HINF_controller_id = 3;  % 1: mixsyn 2: hinfsyn 3: hinfstruct (PID)
 
-LQG_controller_id = 1;  % 1 = LQGI, 2 = LQG
+LQG_controller_id = 1;  % 1 = LQG, 2 = LQGI

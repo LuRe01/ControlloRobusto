@@ -1,12 +1,11 @@
 %% ========================================================================
-% RAS_ALL_CONTROLLERS
+% RAS_ALL_CONTROLLERS_PARALLEL
 %
 % Sezione numerica della regione di attrazione:
-%
 % delta_alpha_dot(0) = 0
 % delta_beta_dot(0)  = 0
 %
-% Modello NON LINEARE nominale.
+% Modello NON LINEARE nominale. Ottimizzato con PARSIM e Fast Restart.
 % ========================================================================
 
 close all;
@@ -44,7 +43,7 @@ refRAS.beta.time    = 0;
 %% ========================================================================
 % 2. CONTROLLORI
 % ========================================================================
-
+% NOTA: Nomi dei segnali corretti con l'underscore per i blocchi To Workspace
 controllerData = {
     'LQG',          'LQG',  1, 'xNL_LQG';
     'LQGI',         'LQG',  2, 'xNL_LQG';
@@ -57,179 +56,129 @@ controllerData = {
 %% ========================================================================
 % 3. GRIGLIA
 % ========================================================================
+% Per test rapidi di debug, puoi decommentare la griglia ridotta qui sotto:
+deltaAlphaGrid = deg2rad(linspace(-25,25,11));
+deltaBetaGrid  = deg2rad(linspace(-45,45,15));
 
-deltaAlphaGrid = ...
-    deg2rad( ...
-        linspace(-25,25,31));
+% deltaAlphaGrid = deg2rad(linspace(-25,25,31));
+% deltaBetaGrid  = deg2rad(linspace(-45,45,41));
 
-deltaBetaGrid = ...
-    deg2rad( ...
-        linspace(-45,45,41));
-
-angleTolerance = ...
-    deg2rad(0.25);
-
-rateTolerance = ...
-    deg2rad(0.5);
+angleTolerance = deg2rad(0.25);
+rateTolerance  = deg2rad(0.5);
 
 maxAlpha = deg2rad(85);
 maxBeta  = deg2rad(170);
 
 stopTime = 15;
 
-xEquilibrium = [
-    alpha0
-    0
-    beta0
-    0
-];
+% FIX: xEquilibrium trasformato in vettore riga per compatibilità matriciale
+xEquilibrium = [alpha0, 0, beta0, 0];
 
-RASmaps = ...
-    cell(size(controllerData,1),1);
+RASmaps = cell(size(controllerData,1),1);
 
 %% ========================================================================
-% 4. CICLO
+% 4. CICLO PARALLELO (PARSIM)
 % ========================================================================
+
+numAlpha = numel(deltaAlphaGrid);
+numBeta  = numel(deltaBetaGrid);
+numSims  = numAlpha * numBeta;
 
 for ic = 1:size(controllerData,1)
 
-    controllerName = ...
-        controllerData{ic,1};
+    controllerName = controllerData{ic,1};
+    family         = controllerData{ic,2};
+    controllerID   = controllerData{ic,3};
+    loggedVariable = controllerData{ic,4};
 
-    family = ...
-        controllerData{ic,2};
+    stableMap = false(numBeta, numAlpha);
 
-    controllerID = ...
-        controllerData{ic,3};
+    fprintf('\n============================================================\n');
+    fprintf('RAS: Preparazione simulazioni per %s...\n', controllerName);
+    
+    % Preallocazione dell'array di input per la simulazione parallela
+    simInArray(1:numSims) = Simulink.SimulationInput(modelName);
+    idx = 1;
 
-    loggedVariable = ...
-        controllerData{ic,4};
-
-    stableMap = ...
-        false( ...
-            numel(deltaBetaGrid), ...
-            numel(deltaAlphaGrid));
-
-    fprintf('\nRAS: %s\n',controllerName);
-
-    for ia = 1:numel(deltaAlphaGrid)
-
-        for ib = 1:numel(deltaBetaGrid)
+    for ia = 1:numAlpha
+        for ib = 1:numBeta
 
             q0_test = [
                 alpha0 + deltaAlphaGrid(ia)
                 beta0  + deltaBetaGrid(ib)
             ];
 
-            qdot0_test = [
-                0
-                0
-            ];
+            qdot0_test = [0; 0];
 
-            simIn = ...
-                Simulink.SimulationInput(modelName);
+            simIn = Simulink.SimulationInput(modelName);
 
-            simIn = ...
-                simIn.setVariable( ...
-                    'q0', ...
-                    q0_test);
-
-            simIn = ...
-                simIn.setVariable( ...
-                    'qdot0', ...
-                    qdot0_test);
-
-            simIn = ...
-                simIn.setVariable( ...
-                    'act', ...
-                    actRAS);
-
-            simIn = ...
-                simIn.setVariable( ...
-                    'sensor', ...
-                    sensorRAS);
-
-            simIn = ...
-                simIn.setVariable( ...
-                    'aero', ...
-                    aeroRAS);
-
-            simIn = ...
-                simIn.setVariable( ...
-                    'delta_plant', ...
-                    deltaPlantRAS);
-
-            simIn = ...
-                simIn.setVariable( ...
-                    'ref', ...
-                    refRAS);
+            % Caricamento variabili nel workspace della singola simulazione
+            simIn = simIn.setVariable('q0', q0_test);
+            simIn = simIn.setVariable('qdot0', qdot0_test);
+            simIn = simIn.setVariable('act', actRAS);
+            simIn = simIn.setVariable('sensor', sensorRAS);
+            simIn = simIn.setVariable('aero', aeroRAS);
+            simIn = simIn.setVariable('delta_plant', deltaPlantRAS);
+            simIn = simIn.setVariable('ref', refRAS);
 
             if strcmp(family,'LQG')
-
-                simIn = ...
-                    simIn.setVariable( ...
-                        'LQG_controller_id', ...
-                        controllerID);
-
+                simIn = simIn.setVariable('LQG_controller_id', controllerID);
             else
-
-                simIn = ...
-                    simIn.setVariable( ...
-                        'HINF_controller_id', ...
-                        controllerID);
-
+                simIn = simIn.setVariable('HINF_controller_id', controllerID);
             end
 
-            simIn = ...
-                simIn.setModelParameter( ...
-                    'StopTime', ...
-                    num2str(stopTime));
+            % Impostazione parametri del modello (Accelerator accelera il C-code)
+            simIn = simIn.setModelParameter('StopTime', num2str(stopTime));
+            simIn = simIn.setModelParameter('SimulationMode', 'normal');
+
+            simInArray(idx) = simIn;
+            idx = idx + 1;
+        end
+    end
+
+    fprintf('Lancio di %d simulazioni in parallelo. Potrebbe volerci un attimo...\n', numSims);
+    
+    % ESECUZIONE PARALLELA CON FAST RESTART
+    simOutArray = parsim(simInArray, 'ShowProgress', 'on', 'UseFastRestart', 'on');
+
+    fprintf('Estrazione e validazione dei risultati...\n');
+    
+    % Analisi dei risultati
+    idx = 1;
+    for ia = 1:numAlpha
+        for ib = 1:numBeta
+            
+            simOut = simOutArray(idx);
+            
+            % Verifica se la simulazione ha generato errori interni
+            if ~isempty(simOut.ErrorMessage)
+                stableMap(ib,ia) = false;
+                idx = idx + 1;
+                continue;
+            end
 
             try
+                xTS = simOut.get(loggedVariable);
+                xData = squeeze(xTS.Data);
 
-                simOut = sim(simIn);
-
-                xTS = ...
-                    simOut.get( ...
-                        loggedVariable);
-
-                xData = ...
-                    squeeze(xTS.Data);
-
-                if size(xData,2) ~= 4 && ...
-                        size(xData,1) == 4
-
+                if size(xData,2) ~= 4 && size(xData,1) == 4
                     xData = xData.';
                 end
 
-                finiteTrajectory = ...
-                    all(isfinite(xData(:)));
+                finiteTrajectory = all(isfinite(xData(:)));
 
                 withinLimits = ...
                     max(abs(xData(:,1))) < maxAlpha && ...
                     max(abs(xData(:,3))) < maxBeta;
 
-                %% Convergenza sull'ultimo 10% della simulazione
-
+                % Convergenza sull'ultimo 10% della simulazione
                 N = size(xData,1);
+                firstTailSample = max(1, floor(0.90*N));
+                xTail = xData(firstTailSample:end,:);
 
-                firstTailSample = ...
-                    max( ...
-                        1, ...
-                        floor(0.90*N));
-
-                xTail = ...
-                    xData(firstTailSample:end,:);
-
-                errorTail = ...
-                    xTail - ...
-                    xEquilibrium;
-
-                maxTailError = ...
-                    max( ...
-                        abs(errorTail), ...
-                        [], ...
-                        1);
+                % Calcolo dell'errore (ora le dimensioni combaciano)
+                errorTail = xTail - xEquilibrium;
+                maxTailError = max(abs(errorTail), [], 1);
 
                 converged = ...
                     maxTailError(1) < angleTolerance && ...
@@ -237,50 +186,29 @@ for ic = 1:size(controllerData,1)
                     maxTailError(3) < angleTolerance && ...
                     maxTailError(4) < rateTolerance;
 
-                stableMap(ib,ia) = ...
-                    finiteTrajectory && ...
-                    withinLimits && ...
-                    converged;
+                stableMap(ib,ia) = finiteTrajectory && withinLimits && converged;
 
-            catch ME
-
-                fprintf( ...
-                    'Simulazione fallita: %s\n', ...
-                    ME.message);
-
+            catch
+                % In caso di problemi con l'estrazione, segna come instabile
                 stableMap(ib,ia) = false;
             end
+            
+            idx = idx + 1;
         end
     end
 
-    RASmaps{ic} = ...
-        stableMap;
+    RASmaps{ic} = stableMap;
 
-    figure( ...
-        'Name', ...
-        ['RAS - ',controllerName]);
-
-    imagesc( ...
-        rad2deg(deltaAlphaGrid), ...
-        rad2deg(deltaBetaGrid), ...
-        stableMap);
-
+    % Grafico
+    figure('Name', ['RAS - ', controllerName]);
+    imagesc(rad2deg(deltaAlphaGrid), rad2deg(deltaBetaGrid), stableMap);
     axis xy;
     grid on;
-
     xlabel('\delta\alpha(0) [deg]');
     ylabel('\delta\beta(0) [deg]');
-
-    title( ...
-        ['Sezione numerica RAS - ', ...
-        controllerName]);
-
+    title(['Sezione numerica RAS - ', controllerName]);
     colorbar;
 end
 
-save( ...
-    'RAS_ALL_results.mat', ...
-    'RASmaps', ...
-    'deltaAlphaGrid', ...
-    'deltaBetaGrid', ...
-    'controllerData');
+save('RAS_ALL_results.mat', 'RASmaps', 'deltaAlphaGrid', 'deltaBetaGrid', 'controllerData');
+disp('Salvataggio completato!');
