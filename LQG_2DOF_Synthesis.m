@@ -331,6 +331,21 @@ V = diag([
     sensor.mag.var
 ]);
 
+%% Ricostruzione WLS degli angoli dalle misure VN-100
+
+Jsensor = [
+    g0*cos(alpha0),                  0;
+    0,                -B0*sin(beta0);
+    0,                -B0*cos(beta0)
+    ];
+
+Vinv = ...
+    diag(1./diag(V));
+
+Hy_LQG = ...
+    (Jsensor.'*Vinv*Jsensor) \ ...
+    (Jsensor.'*Vinv);
+
 % Piccola regolarizzazione numerica
 
 V = V + 1e-12*eye(ny);
@@ -471,13 +486,13 @@ Ki_LQGI = Kaug_LQI(:,n+1:end);
 
 Ac_LQGI = [
     A - B*Kx_LQGI - Ke*Cmeas,   -B*Ki_LQGI;
-   -Ctrack,                      zeros(nr,nr)
-];
+    zeros(nr,n),                 zeros(nr,nr)
+    ];
 
 Bc_LQGI = [
     zeros(n,nr),      Ke;
-    eye(nr),          zeros(nr,ny)
-];
+    eye(nr),         -Hy_LQG
+    ];
 
 Cc_LQGI = [
     -Kx_LQGI, -Ki_LQGI
@@ -531,10 +546,10 @@ Acl_LQG = [
 %% LQGI con integratore
 
 Acl_LQGI = [
-    A,                        -B*Kx_LQGI,       -B*Ki_LQGI;
-    Ke*Cmeas,       A-B*Kx_LQGI-Ke*Cmeas,       -B*Ki_LQGI;
-   zeros(nr,n),                  -Ctrack,      zeros(nr,nr)
-];
+    A,                         -B*Kx_LQGI,               -B*Ki_LQGI;
+    Ke*Cmeas,      A-B*Kx_LQGI-Ke*Cmeas,               -B*Ki_LQGI;
+    -Hy_LQG*Cmeas,              zeros(nr,n),              zeros(nr,nr)
+    ];
 
 eig_LQG  = eig(Acl_LQG);
 eig_LQGI = eig(Acl_LQGI);

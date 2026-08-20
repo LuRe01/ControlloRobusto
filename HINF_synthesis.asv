@@ -230,18 +230,6 @@ Fbeta_tunable = ...
         tf(Fbeta0));
 
 %% ========================================================================
-% 3.2b PID + COMPENSATORI DINAMICI
-% ========================================================================
-
-Calpha_tunable = ...
-    Falpha_tunable * ...
-    Kalpha_tunable;
-
-Cbeta_tunable = ...
-    Fbeta_tunable * ...
-    Kbeta_tunable;
-
-%% ========================================================================
 % 3.3 CONTROLLORE STRUTTURATO CON DECOUPLER MIMO
 %
 % e -> PID/lead-lag diagonali -> Ddec -> u
