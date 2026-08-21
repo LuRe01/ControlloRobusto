@@ -1,0 +1,148 @@
+
+
+############################################################
+MIXSYN
+############################################################
+10 states removed.
+10 states removed.
+24 states removed.
+74 states removed.
+12 states removed.
+24 states removed.
+12 states removed.
+74 states removed.
+
+Picchi nominali in frequenza:
+WS*S  : 1.042578 a 0.000000 rad/s
+WU*KS : 0.747171 a 54.510019 rad/s
+WT*T  : 0.205573 a 10.660343 rad/s
+Gamma : 1.049537 a 0.000000 rad/s
+
+Running wcgain - mixsyn...
+wcgain standard method successful.
+wcgain completed in 72.57 s.
+Worst-case gain = [2.086950, 4.264280]
+Robust performance margin = [0.000000, 0.000000]
+
+Robust performance margin = [0.000000 0.000000]
+Points completed: 500/500
+Points completed: 500/500
+10 states removed.
+10 states removed.
+24 states removed.
+10 states removed.
+
+
+############################################################
+HINFSYN
+############################################################
+10 states removed.
+10 states removed.
+24 states removed.
+74 states removed.
+12 states removed.
+24 states removed.
+12 states removed.
+74 states removed.
+
+Picchi nominali in frequenza:
+WS*S  : 1.042578 a 0.000000 rad/s
+WU*KS : 0.747171 a 54.510019 rad/s
+WT*T  : 0.205573 a 10.660343 rad/s
+Gamma : 1.049537 a 0.000000 rad/s
+
+Running wcgain - hinfsyn...
+wcgain standard method successful.
+wcgain completed in 40.63 s.
+Worst-case gain = [2.086950, 4.264280]
+Robust performance margin = [0.000000, 0.000000]
+
+Robust performance margin = [0.000000 0.000000]
+Points completed: 500/500
+Points completed: 500/500
+10 states removed.
+10 states removed.
+24 states removed.
+10 states removed.
+
+
+############################################################
+PID + COMPENSATOR
+############################################################
+6 states removed.
+38 states removed.
+6 states removed.
+38 states removed.
+
+Picchi nominali in frequenza:
+WS*S  : 1.087884 a 0.085334 rad/s
+WU*KS : 0.803096 a 184.959096 rad/s
+WT*T  : 0.230641 a 10.216359 rad/s
+Gamma : 1.090772 a 184.959096 rad/s
+
+Running wcgain - PID + compensator...
+
+Standard wcgain returned a non-finite upper bound.
+Retrying wcgain with MussvOptions = 'a'...
+wcgain fallback method successful.
+wcgain completed in 0.08 s.
+Worst-case gain = [Inf, Inf]
+Robust performance margin = [0.000000, 0.000000]
+
+Robust performance margin = [0.000000 0.000000]
+Points completed: 500/500
+Points completed: 500/500
+6 states removed.
+10 states removed.
+
+============================================================
+MIXSYN - TIME RESPONSE
+============================================================
+
+PITCH
+Rise Time     = 0.4268 s
+Settling Time = 0.9522 s
+Overshoot     = 0.00 %
+
+YAW
+Rise Time     = 0.5247 s
+Settling Time = 1.1806 s
+Overshoot     = 0.00 %
+
+============================================================
+HINFSYN - TIME RESPONSE
+============================================================
+
+PITCH
+Rise Time     = 0.4268 s
+Settling Time = 0.9522 s
+Overshoot     = 0.00 %
+
+YAW
+Rise Time     = 0.5247 s
+Settling Time = 1.1806 s
+Overshoot     = 0.00 %
+
+============================================================
+PID + COMPENSATOR - TIME RESPONSE
+============================================================
+
+PITCH
+Rise Time     = 0.3938 s
+Settling Time = 0.8428 s
+Overshoot     = 0.29 %
+
+YAW
+Rise Time     = 0.4499 s
+Settling Time = 0.9046 s
+Overshoot     = 0.00 %
+
+============================================================
+RISULTATI FINALI
+============================================================
+         Controller          Order    MaxRealPole     WS_S      WU_KS      WT_T      NominalGamma    RS_Lower    RS_Upper    WorstGainLower    WorstGainUpper    MuRS_Lower    MuRS_Upper    MuRP_Lower    MuRP_Upper    PitchRiseTime    PitchSettlingTime    PitchOvershoot    YawRiseTime    YawSettlingTime    YawOvershoot      NS         NP         RS       RP    PitchSettlingPass    PitchOvershootPass    YawSettlingPass    YawOvershootPass    WS_PeakFrequency    WU_PeakFrequency    WT_PeakFrequency    GammaPeakFrequency
+    _____________________    _____    ___________    ______    _______    _______    ____________    ________    ________    ______________    ______________    __________    __________    __________    __________    _____________    _________________    ______________    ___________    _______________    ____________    _______    _______    _______    __    _________________    __________________    _______________    ________________    ________________    ________________    ________________    __________________
+
+    {'mixsyn'           }     14        -0.12891     1.0426    0.74717    0.20557             0        54.51       10.66              0            1.0495          1.9854        2.0378        2.087         4.2643         0.44922             0.4867              1.542          1.5583           0.42684          0.95219             0     0.5247     1.1806    0           true                 false                true               false               true                true                true                 true        
+    {'hinfsyn'          }     14        -0.12891     1.0426    0.74717    0.20557             0        54.51       10.66              0            1.0495          1.9854        2.0378        2.087         4.2643         0.44922             0.4867              1.542          1.5583           0.42684          0.95219             0     0.5247     1.1806    0           true                 false                true               false               true                true                true                 true        
+    {'PID + compensator'}      6       -0.085334     1.0879     0.8031    0.23064      0.085334       184.96      10.216         184.96            1.0908          1.9507        1.9884          Inf            Inf         0.39972            0.46842             1.5905          1.6048           0.39384           0.8428       0.28545    0.44986    0.90462    0           true                 false                true               false               true                true                true                 true        

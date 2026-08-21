@@ -405,8 +405,8 @@ disp(dcgain(G_scaled));
 weight.Ms_alpha = 1.35;
 weight.Ms_beta  = 1.40;
 
-weight.As_alpha = 0.01;
-weight.As_beta  = 0.01;
+weight.As_alpha = 0.011;
+weight.As_beta  = 0.011;
 
 weight.wb_alpha = 4.0;
 weight.wb_beta  = 3.2;

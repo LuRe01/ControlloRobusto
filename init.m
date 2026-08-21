@@ -63,7 +63,7 @@ act.sigma_F2 = 0.01;   % N
 act.noisePower_F1 = act.sigma_F1^2 * act.Ts_noise;
 act.noisePower_F2 = act.sigma_F2^2 * act.Ts_noise;
 
-act.noiseEnable = 0;
+act.noiseEnable = 1;
 
 %% Saturazioni sulle variazioni di forza
 
@@ -78,7 +78,7 @@ act.deltaF2_max =  2.50;
 % ========================================================================
 
 sensor.seed = 12345;
-sensor.noiseEnable = 0; % mettere a 0 per la RAS
+sensor.noiseEnable = 1; % mettere a 0 per la RAS
 
 %% ========================================================================
 % VECTORNAV VN-100
@@ -154,6 +154,6 @@ ref.beta.time     = 2;
 %% ========================================================================
 % HINF controller selection
 % ========================================================================
-HINF_controller_id = 1;  % 1: mixsyn 2: hinfsyn 3: hinfstruct (PID)
+HINF_controller_id = 4;  % 1: mixsyn 2: hinfsyn 3: hinfstruct (PID)
 
-LQG_controller_id = 1;  % 1 = LQGI, 2 = LQG
+LQG_controller_id = 2;  % 1 = LQGI, 2 = LQG

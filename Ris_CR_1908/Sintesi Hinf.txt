@@ -1,0 +1,213 @@
+
+============================================================
+1. MIXSYN
+============================================================
+
+  Test bounds:  0.746 <=  gamma  <=  1.39
+
+   gamma        X>=0        Y>=0       rho(XY)<1    p/f
+  1.02e+00    -2.6e+03 #  -3.8e-17     8.443e-17     f
+  1.19e+00     2.0e-06     0.0e+00     3.554e-15     p
+  1.10e+00     2.0e-06     0.0e+00     6.676e-18     p
+  1.06e+00     2.1e-06     0.0e+00     1.754e-16     p
+  1.04e+00    -1.4e+04 #  -8.6e-17     3.550e-16     f
+  1.05e+00     2.1e-06     0.0e+00     1.006e-15     p
+
+  Best performance (actual): 1.05
+Gamma mixsyn = 1.04953657
+Ordine K_mix = 14
+
+============================================================
+2. HINFSYN
+============================================================
+
+  Test bounds:  0.746 <=  gamma  <=  1.39
+
+   gamma        X>=0        Y>=0       rho(XY)<1    p/f
+  1.02e+00    -2.6e+03 #  -3.8e-17     8.443e-17     f
+  1.19e+00     2.0e-06     0.0e+00     3.554e-15     p
+  1.10e+00     2.0e-06     0.0e+00     6.676e-18     p
+  1.06e+00     2.1e-06     0.0e+00     1.754e-16     p
+  1.04e+00    -1.4e+04 #  -8.6e-17     3.550e-16     f
+  1.05e+00     2.1e-06     0.0e+00     1.006e-15     p
+
+  Best performance (actual): 1.05
+Gamma hinfsyn = 1.04953657
+Ordine K_hinfsyn = 14
+Differenza relativa gamma = 0.000000e+00
+
+============================================================
+3. HINFSTRUCT - PID + LEAD/LAG
+============================================================
+Final: Peak gain = 1.11, Iterations = 84
+       Some closed-loop poles are marginally stable (decay rate near 0.01)
+Final: Peak gain = 2.82, Iterations = 203
+       Some closed-loop poles are marginally stable (decay rate near 0.01)
+Final: Peak gain = 1.1, Iterations = 116
+       Some closed-loop poles are marginally stable (decay rate near 0.01)
+Final: Peak gain = 2.55, Iterations = 135
+       Some closed-loop poles are marginally stable (decay rate near 0.01)
+Final: Failed to enforce closed-loop stability (max Re(s) = -0.0069)
+Final: Peak gain = 1.1, Iterations = 111
+       Some closed-loop poles are marginally stable (decay rate near 0.01)
+Final: Peak gain = 2.22, Iterations = 130
+       Some closed-loop poles are marginally stable (decay rate near 0.01)
+Final: Peak gain = 1.1, Iterations = 138
+       Some closed-loop poles are marginally stable (decay rate near 0.01)
+Final: Peak gain = 1.09, Iterations = 120
+       Some closed-loop poles are marginally stable (decay rate near 0.01)
+Final: Peak gain = 1.09, Iterations = 125
+       Some closed-loop poles are marginally stable (decay rate near 0.01)
+Final: Peak gain = 2.54, Iterations = 131
+       Some closed-loop poles are marginally stable (decay rate near 0.01)
+Final: Peak gain = 1.11, Iterations = 126
+       Some closed-loop poles are marginally stable (decay rate near 0.01)
+Final: Peak gain = 2.22, Iterations = 125
+       Some closed-loop poles are marginally stable (decay rate near 0.01)
+Final: Peak gain = 1.1, Iterations = 101
+       Some closed-loop poles are marginally stable (decay rate near 0.01)
+Final: Peak gain = 1.11, Iterations = 138
+       Some closed-loop poles are marginally stable (decay rate near 0.01)
+Final: Peak gain = 1.09, Iterations = 148
+       Some closed-loop poles are marginally stable (decay rate near 0.01)
+Final: Peak gain = 2.49, Iterations = 147
+       Some closed-loop poles are marginally stable (decay rate near 0.01)
+Final: Peak gain = 1.1, Iterations = 160
+       Some closed-loop poles are marginally stable (decay rate near 0.01)
+Final: Peak gain = 1.11, Iterations = 130
+       Some closed-loop poles are marginally stable (decay rate near 0.01)
+Final: Peak gain = 16, Iterations = 181
+       Some closed-loop poles are marginally stable (decay rate near 0.01)
+Final: Peak gain = 2.47, Iterations = 163
+       Some closed-loop poles are marginally stable (decay rate near 0.01)
+Final: Peak gain = 1.1, Iterations = 112
+       Some closed-loop poles are marginally stable (decay rate near 0.01)
+Final: Peak gain = 4.13, Iterations = 281
+       Some closed-loop poles are marginally stable (decay rate near 0.01)
+Final: Peak gain = 1.09, Iterations = 143
+       Some closed-loop poles are marginally stable (decay rate near 0.01)
+Final: Peak gain = 2.63, Iterations = 173
+       Some closed-loop poles are marginally stable (decay rate near 0.01)
+Final: Peak gain = 1.1, Iterations = 112
+       Some closed-loop poles are marginally stable (decay rate near 0.01)
+Final: Peak gain = 1.09, Iterations = 109
+       Some closed-loop poles are marginally stable (decay rate near 0.01)
+Final: Peak gain = 2.49, Iterations = 179
+       Some closed-loop poles are marginally stable (decay rate near 0.01)
+Final: Peak gain = 1.09, Iterations = 158
+       Some closed-loop poles are marginally stable (decay rate near 0.01)
+Final: Peak gain = 1.11, Iterations = 121
+       Some closed-loop poles are marginally stable (decay rate near 0.01)
+Final: Peak gain = 2.25, Iterations = 86
+       Some closed-loop poles are marginally stable (decay rate near 0.01)
+Warning: Gain goal: Feedback configuration has fixed poles whose decay rate cannot exceed 0.01. Make sure these poles are associated with design artifacts such
+as weighting functions and do not belong to the physical system. 
+> In DynamicSystem/systune (line 371)
+In DynamicSystem/hinfstruct (line 181)
+In HINF_synthesis (line 323) 
+6 states removed.
+38 states removed.
+
+============================================================
+HINFSTRUCT RESULT
+============================================================
+Gamma synthesis = 1.090783
+Gamma verified  = 1.090772
+WS*S  = 1.087884
+WU*KS = 0.803096
+WT*T  = 0.230641
+Max Re(polo) = -8.533386e-02
+PID alpha:
+  pid with properties:
+
+              Kp: -3.5233
+              Ki: 774.5432
+              Kd: 24.6741
+              Tf: 0.0323
+        IFormula: ''
+        DFormula: ''
+      InputDelay: 0
+     OutputDelay: 0
+       InputName: {''}
+       InputUnit: {''}
+      InputGroup: [1×1 struct]
+      OutputName: {''}
+      OutputUnit: {''}
+     OutputGroup: [1×1 struct]
+           Notes: [0×1 string]
+        UserData: []
+            Name: ''
+              Ts: 0
+        TimeUnit: 'seconds'
+    SamplingGrid: [1×1 struct]
+
+Falpha:
+  tf with properties:
+
+       Numerator: {[1.6601 26.7966]}
+     Denominator: {[1 23.9943]}
+        Variable: 's'
+         IODelay: 0
+      InputDelay: 0
+     OutputDelay: 0
+       InputName: {''}
+       InputUnit: {''}
+      InputGroup: [1×1 struct]
+      OutputName: {''}
+      OutputUnit: {''}
+     OutputGroup: [1×1 struct]
+           Notes: [0×1 string]
+        UserData: []
+            Name: 'Falpha'
+              Ts: 0
+        TimeUnit: 'seconds'
+    SamplingGrid: [1×1 struct]
+
+PID beta:
+  pid with properties:
+
+              Kp: 4.2251e+03
+              Ki: 3.4350e+03
+              Kd: -13.8539
+              Tf: 0.0054
+        IFormula: ''
+        DFormula: ''
+      InputDelay: 0
+     OutputDelay: 0
+       InputName: {''}
+       InputUnit: {''}
+      InputGroup: [1×1 struct]
+      OutputName: {''}
+      OutputUnit: {''}
+     OutputGroup: [1×1 struct]
+           Notes: [0×1 string]
+        UserData: []
+            Name: ''
+              Ts: 0
+        TimeUnit: 'seconds'
+    SamplingGrid: [1×1 struct]
+
+Fbeta:
+  tf with properties:
+
+       Numerator: {[0.4944 0.0427]}
+     Denominator: {[1 41.0458]}
+        Variable: 's'
+         IODelay: 0
+      InputDelay: 0
+     OutputDelay: 0
+       InputName: {''}
+       InputUnit: {''}
+      InputGroup: [1×1 struct]
+      OutputName: {''}
+      OutputUnit: {''}
+     OutputGroup: [1×1 struct]
+           Notes: [0×1 string]
+        UserData: []
+            Name: 'Fbeta'
+              Ts: 0
+        TimeUnit: 'seconds'
+    SamplingGrid: [1×1 struct]
+
+
+HINF_controllers.mat creato correttamente.

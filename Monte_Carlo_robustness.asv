@@ -71,14 +71,6 @@ YawBW   = nan(Nc*nSamples,1);
 PitchDistPeak = nan(Nc*nSamples,1);
 YawDistPeak   = nan(Nc*nSamples,1);
 
-%% Metriche aggiuntive di tracking e accoppiamento
-
-PitchSSerror = nan(Nc*nSamples,1);
-YawSSerror   = nan(Nc*nSamples,1);
-
-YawFromPitchPeak = nan(Nc*nSamples,1);
-PitchFromYawPeak = nan(Nc*nSamples,1);
-
 row = 0;
 
 for ic = 1:Nc
@@ -150,38 +142,7 @@ for ic = 1:Nc
         YawFromPitchPeak(row) = ...
             max(abs(yPitch(:,2)));
 
-        %% ---------------------------------------------------------------
-        % TRACKING YAW
-        % ---------------------------------------------------------------
-
-        yYaw = ...
-            step( ...
-            T(:,2)*reference.betaStep, ...
-            t);
-
-        yYaw = squeeze(yYaw);
-
-        yssYaw = ...
-            dcgain(T(2,2)) * ...
-            reference.betaStep;
-
-        infoYaw = ...
-            stepinfo( ...
-            yYaw(:,2), ...
-            t, ...
-            yssYaw, ...
-            'SettlingTimeThreshold',0.02);
-
-        YawSettling(row) = ...
-            infoYaw.SettlingTime;
-
-        YawSSerror(row) = ...
-            100 * ...
-            abs(reference.betaStep-yssYaw) / ...
-            abs(reference.betaStep);
-
-        PitchFromYawPeak(row) = ...
-            max(abs(yYaw(:,1)));
+    
 
         %% ---------------------------------------------------------------
         % BANDWIDTH
