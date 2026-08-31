@@ -52,7 +52,7 @@ act.sigma_F1 = 0.01;   % N
 act.sigma_F2 = 0.01;   % N
 act.noisePower_F1 = act.sigma_F1^2 * act.Ts_noise;
 act.noisePower_F2 = act.sigma_F2^2 * act.Ts_noise;
-act.noiseEnable = 1;
+act.noiseEnable = 0;
 
 %% Saturazioni sulle variazioni di forza
 act.deltaF1_min = -0.45;
@@ -64,7 +64,7 @@ act.deltaF2_max =  2.50;
 % SENSORI
 % ========================================================================
 sensor.seed = 12345;
-sensor.noiseEnable = 1; % mettere a 0 per la RAS
+sensor.noiseEnable = 0; % mettere a 0 per la RAS
 
 %% ========================================================================
 % VECTORNAV VN-100

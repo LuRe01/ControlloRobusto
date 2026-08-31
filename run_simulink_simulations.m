@@ -74,7 +74,15 @@ sensor = getBaseVariable('sensor');
 alpha0 = getBaseVariable('alpha0');
 beta0  = getBaseVariable('beta0');
 
-% Verifica preventiva: meglio fermarsi qui che produrre 13 errori Simulink.
+% Modello linearizzato incerto e trim incerto.
+% Servono SOLO per costruire confronti LIN/NL closed-loop coerenti:
+% per ogni realizzazione parametrica delta, il ramo lineare viene valutato
+% sulla stessa realizzazione del ramo non lineare.
+P_uncertain_ext = getBaseVariable('P_uncertain_ext');
+u0_uncertain    = getBaseVariable('u0_uncertain');
+u0_nominal      = getBaseVariable('u0_nominal');
+
+% Verifica preventiva: meglio fermarsi qui che produrre una serie di errori Simulink.
 validateBaseWorkspaceForCampaign();
 
 %% ========================================================================
@@ -216,6 +224,11 @@ deltaRobustTest = [ ...
 EXP = repmat(emptyExperiment(),0,1);
 
 % ---- LQG / LQGI nominali -------------------------------------------------
+% Per il confronto LIN/NL corretto ogni plant deve chiudere il proprio loop.
+EXP(end+1) = makeExp('01_LQG_nominal_LIN', ...
+    'LQG nominale - plant linearizzato', ...
+    'LQG',1,2,1,refCombined,aeroOff,deltaNominal);
+
 EXP(end+1) = makeExp('01_LQG_nominal_NL', ...
     'LQG nominale - plant non lineare', ...
     'LQG',2,2,1,refCombined,aeroOff,deltaNominal);
@@ -225,9 +238,17 @@ EXP(end+1) = makeExp('02_LQGI_nominal_NL', ...
     'LQG',2,1,1,refCombined,aeroOff,deltaNominal);
 
 % ---- Motivazione dell'integratore ---------------------------------------
+EXP(end+1) = makeExp('03_LQG_disturbance_LIN', ...
+    'LQG - reiezione disturbo costante - plant linearizzato', ...
+    'LQG',1,2,1,refCombined,aeroStep,deltaNominal);
+
 EXP(end+1) = makeExp('03_LQG_disturbance_NL', ...
     'LQG - reiezione disturbo costante', ...
     'LQG',2,2,1,refCombined,aeroStep,deltaNominal);
+
+EXP(end+1) = makeExp('04_LQGI_disturbance_LIN', ...
+    'LQGI - reiezione disturbo costante - plant linearizzato', ...
+    'LQG',1,1,1,refCombined,aeroStep,deltaNominal);
 
 EXP(end+1) = makeExp('04_LQGI_disturbance_NL', ...
     'LQGI - reiezione disturbo costante', ...
@@ -243,17 +264,33 @@ EXP(end+1) = makeExp('06_LQGI_nonlinear', ...
     'LQG',2,1,1,refCombined,aeroOff,deltaNominal);
 
 % ---- Confronto nominale dei controllori robusti / H2 ----------------------
+EXP(end+1) = makeExp('07_mixsyn_nominal_LIN', ...
+    'mixsyn - nominale linearizzato', ...
+    'ROB',1,1,1,refCombined,aeroOff,deltaNominal);
+
 EXP(end+1) = makeExp('07_mixsyn_nominal_NL', ...
     'mixsyn - nominale non lineare', ...
     'ROB',2,1,1,refCombined,aeroOff,deltaNominal);
+
+EXP(end+1) = makeExp('08_hinfsyn_nominal_LIN', ...
+    'hinfsyn - nominale linearizzato', ...
+    'ROB',1,1,2,refCombined,aeroOff,deltaNominal);
 
 EXP(end+1) = makeExp('08_hinfsyn_nominal_NL', ...
     'hinfsyn - nominale non lineare', ...
     'ROB',2,1,2,refCombined,aeroOff,deltaNominal);
 
+EXP(end+1) = makeExp('09_PIDcomp_nominal_LIN', ...
+    'hinfstruct PID + compensatore - nominale linearizzato', ...
+    'ROB',1,1,3,refCombined,aeroOff,deltaNominal);
+
 EXP(end+1) = makeExp('09_PIDcomp_nominal_NL', ...
     'hinfstruct PID + compensatore - nominale non lineare', ...
     'ROB',2,1,3,refCombined,aeroOff,deltaNominal);
+
+EXP(end+1) = makeExp('10_H2_nominal_LIN', ...
+    'H2 - nominale linearizzato', ...
+    'ROB',1,1,5,refCombined,aeroOff,deltaNominal);
 
 EXP(end+1) = makeExp('10_H2_nominal_NL', ...
     'H2 - nominale non lineare', ...
@@ -271,6 +308,48 @@ EXP(end+1) = makeExp('12_mu_uncertain_NL', ...
 EXP(end+1) = makeExp('13_H2_uncertain_NL', ...
     'H2 - plant incerto non lineare con disturbo', ...
     'ROB',2,1,5,refCombined,aeroStep,deltaRobustTest);
+
+% ---- Validazione LIN/NL della STESSA realizzazione parametrica ------------
+% Queste prove NON sostituiscono gli stress test 11-13, che mantengono il
+% trim nominale e verificano la robustezza anche rispetto all'errore di trim.
+% Qui, invece, si usa u0(delta) sia sul LIN sia sul NL per isolare il confronto
+% tra il linearizzato della realizzazione incerta e il rispettivo non lineare.
+
+e = makeExp('V1_mixsyn_uncertain_matched_LIN', ...
+    'mixsyn - realizzazione incerta matched - plant linearizzato', ...
+    'ROB',1,1,1,refCombined,aeroStep,deltaRobustTest);
+e.matchedTrim = true;
+EXP(end+1) = e;
+
+e = makeExp('V1_mixsyn_uncertain_matched_NL', ...
+    'mixsyn - realizzazione incerta matched - plant non lineare', ...
+    'ROB',2,1,1,refCombined,aeroStep,deltaRobustTest);
+e.matchedTrim = true;
+EXP(end+1) = e;
+
+e = makeExp('V2_mu_uncertain_matched_LIN', ...
+    'mu-synthesis - realizzazione incerta matched - plant linearizzato', ...
+    'ROB',1,1,4,refCombined,aeroStep,deltaRobustTest);
+e.matchedTrim = true;
+EXP(end+1) = e;
+
+e = makeExp('V2_mu_uncertain_matched_NL', ...
+    'mu-synthesis - realizzazione incerta matched - plant non lineare', ...
+    'ROB',2,1,4,refCombined,aeroStep,deltaRobustTest);
+e.matchedTrim = true;
+EXP(end+1) = e;
+
+e = makeExp('V3_H2_uncertain_matched_LIN', ...
+    'H2 - realizzazione incerta matched - plant linearizzato', ...
+    'ROB',1,1,5,refCombined,aeroStep,deltaRobustTest);
+e.matchedTrim = true;
+EXP(end+1) = e;
+
+e = makeExp('V3_H2_uncertain_matched_NL', ...
+    'H2 - realizzazione incerta matched - plant non lineare', ...
+    'ROB',2,1,5,refCombined,aeroStep,deltaRobustTest);
+e.matchedTrim = true;
+EXP(end+1) = e;
 
 %% ========================================================================
 % 5. EVENTUALI PUNTI RAS AUTOMATICI
@@ -376,6 +455,36 @@ for k = 1:numel(EXP)
     in = in.setVariable('ref',exp.ref);
     in = in.setVariable('aero',exp.aero);
     in = in.setVariable('delta_plant',exp.deltaPlant);
+
+    % --------------------------------------------------------------------
+    % Realizzazione deterministica del modello linearizzato.
+    %
+    % Se plantId = 1 il blocco linearizzato deve rappresentare la STESSA
+    % realizzazione parametrica descritta da exp.deltaPlant. Nel caso
+    % nominale delta = 0 e si recupera esattamente P_nominal_ext.
+    %
+    % Per le prove "matched" viene inoltre usato sul plant non lineare il
+    % trim u0(delta) coerente con quella stessa realizzazione. Gli stress
+    % test originali 11-13 mantengono invece il trim nominale.
+    % --------------------------------------------------------------------
+    if exp.plantId == 1 || exp.matchedTrim
+        [PextRun,u0Matched] = evaluatePlantRealizationAtNormalizedDelta( ...
+            P_uncertain_ext,u0_uncertain,exp.deltaPlant);
+
+        if exp.plantId == 1
+            % Il blocco State-Space linearizzato usa il nome P_nominal_ext.
+            % SimulationInput lo sovrascrive SOLO per questa singola run.
+            in = in.setVariable('P_nominal_ext',PextRun);
+        end
+    else
+        u0Matched = u0_nominal;
+    end
+
+    if exp.matchedTrim
+        in = in.setVariable('u0',u0Matched);
+    else
+        in = in.setVariable('u0',u0_nominal);
+    end
 
     % Simulazioni deterministiche per figure da relazione.
     actRun = act;
@@ -509,6 +618,89 @@ if rasInfoH2.available
         'Validazione a lungo termine del bordo numerico - H2');
 end
 
+
+% 8.8 Confronti LIN/NL closed-loop corretti
+% -------------------------------------------------------------------------
+% Ogni coppia seguente usa DUE simulazioni indipendenti:
+%   - nella run LIN il controllore chiude il loop sul plant linearizzato;
+%   - nella run NL  il controllore chiude il loop sul plant non lineare.
+%
+% In questo modo tracking, tracking error e differenza degli errori hanno
+% un significato closed-loop corretto. Le prove RAS sono volutamente escluse:
+% lontano dal punto di equilibrio il linearizzato non e' un modello adatto
+% per stimare la RAS del sistema non lineare.
+
+linNlDir = fullfile(cfg.outputDir,'linear_vs_nonlinear_closed_loop');
+if ~exist(linNlDir,'dir')
+    mkdir(linNlDir);
+end
+
+makeLinNlComparisonSet(outputs,EXP, ...
+    {'01_LQG_nominal_LIN','01_LQG_nominal_NL'}, ...
+    'LQG',SIG,linNlDir,cfg, ...
+    '01_LQG_nominal', ...
+    'LQG nominale');
+
+makeLinNlComparisonSet(outputs,EXP, ...
+    {'05_LQGI_linear','06_LQGI_nonlinear'}, ...
+    'LQG',SIG,linNlDir,cfg, ...
+    '02_LQGI_nominal', ...
+    'LQGI nominale');
+
+makeLinNlComparisonSet(outputs,EXP, ...
+    {'03_LQG_disturbance_LIN','03_LQG_disturbance_NL'}, ...
+    'LQG',SIG,linNlDir,cfg, ...
+    '03_LQG_disturbance', ...
+    'LQG con disturbo aerodinamico costante');
+
+makeLinNlComparisonSet(outputs,EXP, ...
+    {'04_LQGI_disturbance_LIN','04_LQGI_disturbance_NL'}, ...
+    'LQG',SIG,linNlDir,cfg, ...
+    '04_LQGI_disturbance', ...
+    'LQGI con disturbo aerodinamico costante');
+
+makeLinNlComparisonSet(outputs,EXP, ...
+    {'07_mixsyn_nominal_LIN','07_mixsyn_nominal_NL'}, ...
+    'ROB',SIG,linNlDir,cfg, ...
+    '05_mixsyn_nominal', ...
+    'mixsyn nominale');
+
+makeLinNlComparisonSet(outputs,EXP, ...
+    {'08_hinfsyn_nominal_LIN','08_hinfsyn_nominal_NL'}, ...
+    'ROB',SIG,linNlDir,cfg, ...
+    '06_hinfsyn_nominal', ...
+    'hinfsyn nominale');
+
+makeLinNlComparisonSet(outputs,EXP, ...
+    {'09_PIDcomp_nominal_LIN','09_PIDcomp_nominal_NL'}, ...
+    'ROB',SIG,linNlDir,cfg, ...
+    '07_PIDcomp_nominal', ...
+    'PID + compensatore nominale');
+
+makeLinNlComparisonSet(outputs,EXP, ...
+    {'10_H2_nominal_LIN','10_H2_nominal_NL'}, ...
+    'ROB',SIG,linNlDir,cfg, ...
+    '08_H2_nominal', ...
+    'H2 nominale');
+
+makeLinNlComparisonSet(outputs,EXP, ...
+    {'V1_mixsyn_uncertain_matched_LIN','V1_mixsyn_uncertain_matched_NL'}, ...
+    'ROB',SIG,linNlDir,cfg, ...
+    '09_mixsyn_uncertain_matched', ...
+    'mixsyn - stessa realizzazione parametrica incerta e trim coerente');
+
+makeLinNlComparisonSet(outputs,EXP, ...
+    {'V2_mu_uncertain_matched_LIN','V2_mu_uncertain_matched_NL'}, ...
+    'ROB',SIG,linNlDir,cfg, ...
+    '10_mu_uncertain_matched', ...
+    'mu-synthesis - stessa realizzazione parametrica incerta e trim coerente');
+
+makeLinNlComparisonSet(outputs,EXP, ...
+    {'V3_H2_uncertain_matched_LIN','V3_H2_uncertain_matched_NL'}, ...
+    'ROB',SIG,linNlDir,cfg, ...
+    '11_H2_uncertain_matched', ...
+    'H2 - stessa realizzazione parametrica incerta e trim coerente');
+
 %% ========================================================================
 % 9. RIEPILOGO CSV
 % =========================================================================
@@ -545,7 +737,8 @@ function E = emptyExperiment()
         'aero',struct, ...
         'deltaPlant',zeros(7,1), ...
         'q0Override',[], ...
-        'stopTime',NaN);
+        'stopTime',NaN, ...
+        'matchedTrim',false);
 end
 
 function E = makeExp(id,description,family,plantId,lqgId,robId,ref,aero,deltaPlant)
@@ -559,6 +752,110 @@ function E = makeExp(id,description,family,plantId,lqgId,robId,ref,aero,deltaPla
     E.ref = ref;
     E.aero = aero;
     E.deltaPlant = deltaPlant(:);
+end
+
+function [Pdet,u0det] = evaluatePlantRealizationAtNormalizedDelta(PuncExt,u0unc,delta)
+%EVALUATEPLANTREALIZATIONATNORMALIZEDDELTA
+% Valuta P_uncertain_ext e u0_uncertain sulla stessa realizzazione fisica
+% descritta dal vettore normalizzato delta in [-1,1].
+%
+% Ordine coerente con fcn.m e build_uncertain_linear_model.m:
+%   [J_alpha, J_y, J_z, m, l, epsilon_p, epsilon_y]
+
+    names = { ...
+        'J_alpha', ...
+        'J_y', ...
+        'J_z', ...
+        'm', ...
+        'l', ...
+        'epsilon_p', ...
+        'epsilon_y'};
+
+    delta = delta(:);
+
+    if numel(delta) ~= numel(names)
+        error('deltaPlant deve avere %d elementi.',numel(names));
+    end
+
+    U = PuncExt.Uncertainty;
+    values = struct;
+
+    for k = 1:numel(names)
+        name = names{k};
+
+        if ~isfield(U,name)
+            error('Il blocco incerto "%s" non e'' presente in P_uncertain_ext.',name);
+        end
+
+        blk = U.(name);
+        d = max(-1,min(1,delta(k)));
+
+        nominal = blk.NominalValue;
+        range = blk.Range;
+
+        % Mappa lineare della variabile normalizzata d in [-1,1] sul range
+        % effettivo del corrispondente ureal. Gestisce anche range asimmetrici.
+        if d >= 0
+            value = nominal + d*(range(2)-nominal);
+        else
+            value = nominal + (-d)*(range(1)-nominal);
+        end
+
+        values.(name) = value;
+    end
+
+    % ---- Modello linearizzato della realizzazione -----------------------
+    Pwork = PuncExt;
+
+    for k = 1:numel(names)
+        name = names{k};
+        Pwork = usubs(Pwork,name,values.(name));
+    end
+
+    try
+        remainingP = fieldnames(Pwork.Uncertainty);
+    catch
+        remainingP = {};
+    end
+
+    if ~isempty(remainingP)
+        error('Restano incertezze non sostituite in PextRun: %s', ...
+            strjoin(remainingP,', '));
+    end
+
+    Pdet = ss(Pwork);
+
+    % ---- Trim della stessa realizzazione --------------------------------
+    uwork = u0unc;
+
+    for k = 1:numel(names)
+        name = names{k};
+
+        try
+            Uu = uwork.Uncertainty;
+            present = isfield(Uu,name);
+        catch
+            present = false;
+        end
+
+        if present
+            uwork = usubs(uwork,name,values.(name));
+        end
+    end
+
+    try
+        remainingU0 = fieldnames(uwork.Uncertainty);
+    catch
+        remainingU0 = {};
+    end
+
+    if ~isempty(remainingU0)
+        error('Restano incertezze non sostituite in u0Run: %s', ...
+            strjoin(remainingU0,', '));
+    end
+
+    u0det = double(uwork);
+    u0det = u0det(:);
 end
 
 function logs = getLogsout(out)
@@ -712,50 +1009,89 @@ function makeRunPlots(logs,exp,SIG,outDir,cfg)
         warnMissing('disturbances',exp.id,ME);
     end
 
-    % Linear vs nonlinear: entrambi sono simulati in parallelo nel modello.
-    try
-        [al,bl,an,bn] = linearNonlinearSignals(logs,family,SIG);
-        f = newFigure(cfg);
-        tiledlayout(2,1,'TileSpacing','compact','Padding','compact');
+    % NOTA:
+    % I segnali dei due plant simulati in parallelo nella stessa run non
+    % vengono piu' usati per il confronto ufficiale LIN/NL. Solo il plant
+    % selezionato chiude infatti il feedback. I confronti corretti vengono
+    % costruiti nella Sezione 8.8 usando due run closed-loop indipendenti.
 
-        nexttile;
-        plot(al.Time,rad2deg(al.Data),'--','LineWidth',1.3); hold on;
-        plot(an.Time,rad2deg(an.Data),'LineWidth',1.5); grid on;
-        ylabel('$\alpha$ [deg]','Interpreter','latex');
-        title('Pitch: linearized vs nonlinear model','Interpreter','latex');
-        legend({'Linearized','Nonlinear'},'Location','best');
+end
 
-        nexttile;
-        plot(bl.Time,rad2deg(bl.Data),'--','LineWidth',1.3); hold on;
-        plot(bn.Time,rad2deg(bn.Data),'LineWidth',1.5); grid on;
-        xlabel('Time [s]','Interpreter','latex');
-        ylabel('$\beta$ [deg]','Interpreter','latex');
-        title('Yaw: linearized vs nonlinear model','Interpreter','latex');
-        legend({'Linearized','Nonlinear'},'Location','best');
+function makeLinNlComparisonSet(outputs,EXP,ids,family,SIG,rootDir,cfg,stem,figTitle)
+%MAKELINNLCOMPARISONSET Genera confronti LIN/NL da due closed loop distinti.
+%
+% Produce:
+%   01_tracking_LIN_vs_NL.png
+%   02_tracking_error_LIN_vs_NL.png
+%   03_tracking_error_difference.png
 
-        sgtitle(exp.description,'Interpreter','none');
-        exportFigure(f,fullfile(outDir,'06_linear_vs_nonlinear.png'),cfg);
-
-        % Errore di linearizzazione con interpolazione sulla griglia NL.
-        alI = interp1(al.Time,al.Data,an.Time,'linear','extrap');
-        blI = interp1(bl.Time,bl.Data,bn.Time,'linear','extrap');
-
-        f = newFigure(cfg);
-        tiledlayout(2,1,'TileSpacing','compact','Padding','compact');
-        nexttile;
-        plot(an.Time,rad2deg(an.Data-alI),'LineWidth',1.5); grid on; yline(0,'--');
-        ylabel('$\alpha_{NL}-\alpha_{LIN}$ [deg]','Interpreter','latex');
-        title('Pitch linearization error','Interpreter','latex');
-        nexttile;
-        plot(bn.Time,rad2deg(bn.Data-blI),'LineWidth',1.5); grid on; yline(0,'--');
-        xlabel('Time [s]','Interpreter','latex');
-        ylabel('$\beta_{NL}-\beta_{LIN}$ [deg]','Interpreter','latex');
-        title('Yaw linearization error','Interpreter','latex');
-        sgtitle(exp.description,'Interpreter','none');
-        exportFigure(f,fullfile(outDir,'07_linearization_error.png'),cfg);
-    catch ME
-        warnMissing('linear/nonlinear comparison',exp.id,ME);
+    pairDir = fullfile(rootDir,stem);
+    if ~exist(pairDir,'dir')
+        mkdir(pairDir);
     end
+
+    labels = {'Linearizzato','Non lineare'};
+
+    compareRuns(outputs,EXP,ids,labels,family,SIG,pairDir,cfg, ...
+        '01_tracking_LIN_vs_NL', ...
+        [figTitle ' - tracking LIN vs NL']);
+
+    compareErrors(outputs,EXP,ids,labels,family,SIG,pairDir,cfg, ...
+        '02_tracking_error_LIN_vs_NL', ...
+        [figTitle ' - errore di tracking LIN vs NL']);
+
+    compareClosedLoopErrorGap(outputs,EXP,ids,family,SIG,pairDir,cfg, ...
+        '03_tracking_error_difference', ...
+        [figTitle ' - differenza degli errori closed-loop']);
+end
+
+function compareClosedLoopErrorGap(outputs,EXP,ids,family,SIG,outDir,cfg,fileName,figTitle)
+%COMPARECLOSEDLOOPERRORGAP Confronta e_NL - e_LIN.
+%
+% IMPORTANTE: ids{1} deve essere la run LIN e ids{2} la run NL.
+% Entrambe sono simulazioni closed-loop indipendenti.
+
+    idx = indicesForIds(EXP,ids);
+    if any(cellfun(@isempty,outputs(idx)))
+        warning('Confronto %s saltato: una simulazione non e'' disponibile.',fileName);
+        return
+    end
+
+    logsLin = getLogsout(outputs{idx(1)});
+    logsNL  = getLogsout(outputs{idx(2)});
+
+    [eaLin,ebLin] = errorSignals(logsLin,family,SIG);
+    [eaNL, ebNL ] = errorSignals(logsNL, family,SIG);
+
+    % Interpolazione del LIN sulla griglia temporale del NL.
+    % Serve solo per sottrarre due timeseries che possono avere griglie
+    % diverse a causa del solver variable-step.
+    eaLinI = interp1(eaLin.Time,eaLin.Data,eaNL.Time,'linear','extrap');
+    ebLinI = interp1(ebLin.Time,ebLin.Data,ebNL.Time,'linear','extrap');
+
+    deltaEa = eaNL.Data - eaLinI;
+    deltaEb = ebNL.Data - ebLinI;
+
+    f = newFigure(cfg);
+    tiledlayout(2,1,'TileSpacing','compact','Padding','compact');
+
+    nexttile;
+    plot(eaNL.Time,rad2deg(deltaEa),'LineWidth',1.5);
+    grid on;
+    yline(0,'k--');
+    ylabel('$e_{\alpha,NL}-e_{\alpha,LIN}$ [deg]','Interpreter','latex');
+    title('Pitch: closed-loop tracking-error difference','Interpreter','latex');
+
+    nexttile;
+    plot(ebNL.Time,rad2deg(deltaEb),'LineWidth',1.5);
+    grid on;
+    yline(0,'k--');
+    xlabel('Time [s]','Interpreter','latex');
+    ylabel('$e_{\beta,NL}-e_{\beta,LIN}$ [deg]','Interpreter','latex');
+    title('Yaw: closed-loop tracking-error difference','Interpreter','latex');
+
+    sgtitle(figTitle,'Interpreter','none');
+    exportFigure(f,fullfile(outDir,[fileName '.png']),cfg);
 end
 
 function compareRuns(outputs,EXP,ids,labels,family,SIG,outDir,cfg,fileName,figTitle)
@@ -1171,7 +1507,8 @@ function validateBaseWorkspaceForCampaign()
 
     required = { ...
         'p0','act','sensor','ref','aero','alpha0','beta0', ...
-        'q0','qdot0','delta_plant','u0', ...
+        'q0','qdot0','delta_plant','u0','u0_nominal','u0_uncertain', ...
+        'P_nominal_ext','P_uncertain_ext', ...
         'Aobs','Bobs','Cobs','Dobs','xhat0', ...
         'K_LQG','K_LQGI','K_mix','K_hinfsyn','K_pidcomp','K_mu','K_h2'};
 

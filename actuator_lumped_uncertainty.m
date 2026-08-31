@@ -106,8 +106,6 @@ Gact_lumped = blkdiag( ...
 
 %% ========================================================================
 % 5. RIDUZIONE DELLE INCERTEZZE MECCANICHE
-%
-% Modificare questa scelta se lo screening indica diversamente.
 % ========================================================================
 Pmech_reduced = P_uncertain;
 % Sostituito per ridurre incertezze
