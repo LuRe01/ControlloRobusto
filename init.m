@@ -129,3 +129,8 @@ ref.beta.time     = 2;
 % ========================================================================
 HINF_controller_id = 4;  % 1: mixsyn, 2: hinfsyn, 3: PID+comp, 4: mu-synthesis, 5: H2
 LQG_controller_id = 1;  % 1 = LQGI, 2 = LQG
+
+Robust_plant_id = 1;
+LQG_plant_id = 1;
+
+
