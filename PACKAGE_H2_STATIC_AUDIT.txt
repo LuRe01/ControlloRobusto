@@ -1,0 +1,24 @@
+PACKAGE H2 STATIC AUDIT
+=======================
+
+[OK] file H2_synthesis.m
+[OK] file H2_analysis.m
+[OK] file run_project.m
+[OK] file run_simulink_simulations.m
+[OK] file RAS_vectorized.m
+[OK] file Monte_Carlo_robustness.m
+[OK] file HINF_analysis.m
+[OK] file MU_analysis_comparison.m
+[OK] file helicopter_2DOF.slx
+[OK] HINF analysis includes H2
+[OK] MU analysis includes H2
+[OK] Monte Carlo includes H2
+[OK] RAS includes H2
+[OK] Simulink campaign selector 5
+[OK] run_project synthesizes H2
+[OK] SLX H2 block
+[OK] SLX selector 5 data inputs
+[OK] SLX H2 matrices
+[OK] SLX H2 switch connection
+
+Nota: audit statico. La sintesi numerica H2 richiede MATLAB/Robust Control Toolbox R2026a e viene eseguita al primo run_project.

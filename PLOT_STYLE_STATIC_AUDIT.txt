@@ -1,0 +1,9 @@
+FINAL PLOT STYLE PATCH - STATIC AUDIT
+
+HINF tracking plot replacements: 2
+Global palette helper: controller_plot_color.m
+Controller colors: LQG blue, LQGI orange, mixsyn gold, hinfsyn purple, PID green, mu cyan, H2 dark red.
+HINF control effort: 2 tiled axes, one per actuator; 4 controller traces per axes.
+HINF sigma plots: same color per controller, line style distinguishes singular values; bound in dark gray.
+RAS comparative boundaries: global controller palette.
+Simulink comparison plots: global controller palette for controller-labelled traces; non-controller comparisons retain MATLAB defaults.
